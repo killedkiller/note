@@ -1,0 +1,29 @@
+No manual entry for gg
+[homework@rdqa-test04-all-1-159 services]$ gg help
+=== gg(master,by luocong) help ===
+# GG是基于Git思想的一键式环境自动搭建工具 #
+  分支: master
+接口人: luocong (有问题找ta)
+  用法:
+        <普通命令 for user>
+        gg [help]                       打印我
+        gg list                         列出中控和本地模块列表
+        gg testinstall 模块名 分支名    在当前目录下搭建提测模块,每次只能搭建一个
+        gg install 模块名+              在当前目录下搭建模块
+        gg install 模块名+              在当前目录下搭建模块
+        gg update|up [模块名+]          重新安装已安装过的模块
+        gg upsrc|us [模块名+]           与up类似，不过限制以src_开头的模块
+        gg start/stop/restart 模块名    提供模块的启动、停止和重启操作
+        gg readme [模块名]              查看GG本身或具体模块的详细介绍
+
+        <高级命令 for keeper>
+        gg branch|br                    列出分支情况及中控地址等
+        gg clone                        从中控克隆搭建代码（到.gg_home），并不执行
+        gg test 模块名                   用于调试本地install脚本，不会与中控同步
+        gg push 模块名                   将本地模块的搭建脚本上传到中控上（这将影响其他用户）
+        gg mm [help]                    使用mm注册测试机
+模块名:
+        比如odp3, nmqtopic等，all表示所有模块
+其他说明:
+        搭建脚本:http://git.afpai.com/test/gg/blob/master/gg_home.homework/bin/gg
+        中控数据:homework@192.168.0.129:/mnt/gg/gg_data/homework,(homework@zuoyebang-test01)

@@ -1,0 +1,95 @@
+添加一个后端服务，
+使用 xxx（即在本地文件中直接配置所有信息）的方式，
+将服务配置信息直接添加在配置文件中
+
+/php/phplib/ak/service/**.conf
+
+
+$output = ral($service, $method, $input, $flag);
+
+根据service读取对应的conf文件请求相应的服务
+
+
+Local 方式，即为最原始的 IP+Port 的配置方式
+
+[CamelConfig]
+[.ServiceConfig]
+
+[..Local]
+
+#redis服务
+[...@Service]
+Name :  Redis_iknow_app_msg
+DefaultPort :   7700
+DefaultRetry :  2
+DefaultConnectType :    1
+DefaultConnectTimeOut : 100
+DefaultReadTimeOut :    1500
+DefaultWriteTimeOut :   500
+[....@Server]
+IP :    127.0.0.1
+[....SuperStrategy] 
+Balance :   Random
+ConnectQueueSize :  100
+ConnectX1 : 10
+ConnectY1 : 95
+ConnectX2 : 40
+ConnectY2 : 5
+HealthyQueueSize :  100
+HealthyTimeout :    100
+HealthyCheckTime :  3
+HealthyMinRate :    0.1
+HealthyBackupThreshold :    3
+CrossRoom : Off
+[....Protocol]
+Name :  nshead
+[....Converter]
+Name :  mcpack2
+_______________________________________
+Name 	服务名 	string 	必须 
+ProxyName 	代理服务名(HTTP协议有效) 	string 
+DefaultPort 	默认端口 	int 	0 
+DefaultConnectType 	默认连接类型 	string/int 	"SHORT"/0 
+DefaultConnectTimeOut 	默认连接超时(ms) 	int 	200 
+DefaultWriteTimeOut 	默认写超时(ms) 	int 	500 
+DefaultReadTimeOut 	默认读超时(ms) 	int 	500 
+DefaultRetry 	默认连接+读写重试次数 	int 	0 
+RetryRateSwitch 	概率重试开关 	string 	Off 	2.0.8.14以上 
+版本支持 
+RetryRate 	概率重试百分比 	int 	10 	2.0.8.14以上 
+版本支持 
+Extra 	Json 格式的附加数据 	string 
+Converter.Name 	发送数据打包格式 	string 	必须 
+Service 配置项 	说明 	数据类型 	是否必须 	默认值 	备注 
+Protocol.Name 	交互协议 	string 	必须 
+SuperStrategy.Balance 	负载均衡方式 	string 	"Random" 
+SuperStrategy.Hybrid 	是否开启全混连 	string 	"Off" 
+Headers 	Http 自定义 header 	k-v pair 
+EnableConnectRetry 	连接重试 	string 	"Off" 
+Server 	后端服务器 	见下表 	必须 
+Server 配置项 	说明 	数据类型 	是否必须 	默认值 
+IP 	IP 	string 	（注） 
+Hostname 	域名 	string 	（注） 
+Port 	访问端口 	int 	service.DefaultPort  
+Tag 	属于机房名 	string 
+______________________________________
+
+webfoot 方式
+[CamelConfig] 
+[.ServiceConfig] 
+[..Webfoot] 
+[...@Service] 
+Name : group.memcache-demo.osp.cn 
+Rename : Memcached_v2_demo
+
+
+
+完成服务配置后，再次触发 php 时，RAL 会自动更新 ral-worker.conf 文件，将最新的配置信息传递给工作进程，这个文件不需要人工修改。
+
+
+
+实例-redis
+ral调用redis-proxy服务,proxy连接redis-server
+/home/homework/redisproxy
+conf/proxy.conf:33:        Service_Port : 9200
+conf/local_config.conf:2:    Port : 7700

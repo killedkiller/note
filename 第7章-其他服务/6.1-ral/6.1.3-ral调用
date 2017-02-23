@@ -1,0 +1,35 @@
+$output = ral($service, $method, $input, $flag);
+service 	string 	无 	服务名，需是ral服务配置文件中已配置的某个服务 
+method 	string 	无 	(1.1.0及之后版本)http协议支持get或post(默认),其他协议保留使用， 
+暂未生效 
+input 	mixed 	无 	向后端发送的数据,根据配置的打包协议不同，将对输入数据做对应格式处理 
+extra 	mixed 	无 	可以是long型的负载均衡key 或array类型控制信息 
+header 	array 	无 	接受array类型的Http Header 
+
+
+
+ral_multi
+multi_req 	array 	无 	ral并发请求参数 
+
+$multi_req = array( "key1" => $req1, "key2" => $req2 );
+
+
+ral_get_errno 
+获取交互过程中 RAL 程序的错误码，各错误码含义请参考 错误码常量。 
+$errno = ral_get_errno(); 
+ral_get_error 
+该函数返回一个字符串，以人类可读的字符串告知交互过程中发生的错误。 
+$errmsg = ral_get_error(); 
+ral_get_protocol_code 
+返回 RAL 交互过程中，相应的交互协议返回的错误码。 
+$prot_code = ral_get_protocol_code(); 
+echo $prot_code;
+prot_code 和日志里的 prot_code 字段表达的意思一致。对于不同的交互协议，prot_code 有不同的含义，参考 错误码常量。 
+ral_get_service 
+$service = ral_get_service($service_name, $flag); 
+获取某个服务的配置信息。$flag 的默认值是 RAL_CURR_SERVER
+....
+
+
+分为同步接口异步接口
+详细查文档

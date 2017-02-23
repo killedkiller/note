@@ -1,0 +1,52 @@
+1.背景：
+ 
+1）稳定性不足：单台redis发生故障后，导致整个服务挂掉；
+—> 需要同时有多个节点备份；
+2）性能不足：单个redis对资源的使用率不高；单台服务器内存资源很容易成为瓶颈；redis单线程模型，性能有限；
+—> 需要进行数据分片，降低压力，均衡资源使用，分布到多个物理节点上；
+ 
+2.集群的功能
+ 
+1）数据分片；（大问题拆分为多个小问题）
+2）负载均衡；
+3）读写分离；
+ 
+3.集群模型（replication）
+ 
+1）数据库分为两类，Master和Slave;
+2）Master可以进行读写操作，并在写操作导致数据变化时，同步数据给Slave；
+3）Slave只可以进行读操作；
+4）Master 1  * Slave；
+5）变更slave从属的Master时，将会解除原来Master的从属关系；
+6）Slave 1 * Slave；
+7）数据同步由Master开始自顶向下同步，数据从数据库作为中间结点，当数据发生改变时，只会影响到所属子节点的数据同步；
+ 
+补充：多级服务器集群架构
+集群中服务器进程不对等，而是分为主从两种，集群分为一处写入，多处读取，且具有层次；
+ 
+适合场景：
+1）一主多从的结构很适合读多写少的场景；
+2）减少Master持久化消耗的性能；设置Master禁用持久化，几个Slave进行数据持久化；当Master宕机后，手动切换Slave为Master;
+ 
+4.设置主从关系的方法（3种）
+ 
+1）启动Slave时，添加slaveof命令行参数
+redis-server --slaveof ${master_ip} ${master_port}
+ 
+2）连接Slave客户端，执行SLAVEOF命令
+redis-cli -h ${slave_ip} ${slave_port} slaveof ${master_ip} ${master_port}
+ 
+3）在Slave配置文件中添加slave配置项
+slaveof <masterip> <masterport>
+ 
+注：查看主从配置信息使用INFO replication命令；
+ 
+5.修改从库只读属性
+ 
+slave默认为只读，可以通过slave-read-only配置修改为可写；
+ 
+注：因为slave会定时同步master数据，所以单独对slave的写操作会在同步后被覆盖，故通常情况下，不应该设置Slave可写；
+ 
+6.Slave转换为Master
+命令：SLAVE NO ONE
+将Slave转换未Master；

@@ -1,0 +1,371 @@
+1.系统命令 
+PING 
+描述：测试连接是否正常； 
+返回值：正常，PONG 
+ECHO 字符串 
+描述：打印字符串； 
+返回值：要打印的字符串； 
+举例：ECHO hi 
+CONFIG SET  
+描述：在不重启redis的情况下，动态修改配置； 
+返回值：正常，OK； 
+举例：CONFIG SET loglevel warning 
+CONFIG GET  
+描述：在不重启redis的情况下，动态修改配置； 
+返回值：正常，OK； 
+举例：CONFIG GET loglevel 
+2.数据操作命令 
+KEYS pattern 
+描述：遍历当前数据库，获得符合规则的键名列表，pattern符合glob风格通配符； 
+返回值：有值，以多行字符串返回所有匹配到的key值； 
+              没有值，(empty list or set)； 
+举例：KEYS * 
+注：KEYS会遍历redis中当前数据库中的所有键，当键的数量较多时，会影响性能，故不建议在生产环境下使用； 
+补充：glob风格通配符 
+ 
+通配符	描述
+？	匹配1个字符；
+*	匹配0到多个字符；
+[]	匹配区间中的任意一个字符；比如a[b-d]，可以匹配"ab","ac","ad"；
+\x	转义特殊字符；
+  
+EXISTS key 
+描述：判断一个key在当前数据库中是否存在； 
+返回值：存在，(integer) 1； 
+              不存在，(integer) 0； 
+举例：EXISTS bar 
+DEL key [key ...] 
+描述：删除一个或多个key，不支持通配符； 
+返回值：删除的数目； 
+举例：DEL bar； 
+补充：删除所有符合通配符的key 
+方法1：使用keys命令结合xargs遍历删除所有匹配结果； 
+ 
+redis-cli KEYS "bar*"	xargs redis-cli DEL
+方法2：使用••执行命令获取结果，批量删除；（性能较好） 
+ 
+redis-cli DEL `redis-cli KEYS "bar*"`
+  
+TYPE key  
+描述：获取键值对应的数据类型； 
+返回值：string(字符串类型)，hash(散列类型)，list(列表类型)，set(集合类型)，zset(有序集合类型)；//没有字符 
+举例：TYPE bar； 
+3.字符串类型命令 
+SET key value 
+描述：设值 
+返回值：正常，OK； 
+举例：SET hello "hello world" 
+规范：键值命名以"对象类型:对象ID:对象属性"格式命名，对于多个单词可以使用.分隔，增强可读性； 
+MSET key1 value1 [key2 value2 …] 
+描述：一次设置多个值； 
+返回值：正常，OK； 
+举例：MSET var1 value1 var2 value2 
+MGET key1 [key2 ...] 
+描述：一次获取多个值； 
+返回值：有值，返回值列表； 
+举例：MGET var1 var2 
+INCR key  
+描述：让当前键值自增，并返回自增后的键值；键值必须是Integer类型；否则会报：(error) ERR value is not an integer or out of range； 
+返回值：增加后的整数值； 
+举例：INCR num； 
+INCRBY key increment 
+描述：让当前key值增加increment，increment可以是负数； 
+返回值：增加后的整数值； 
+举例：NCRBY num 3； 
+DECR key  
+描述：让当前键值自减，并返回自减后的键值；键值必须是Integer类型；否则会报：(error) ERR value is not an integer or out of range； 
+返回值：减少后的整数值； 
+举例：DECR num； 
+DECRBY key decrement 
+描述：让当前key值减少decrement，decrement可以是负数； 
+返回值：减少后的整数值； 
+举例：DECRBY num 3； 
+INCRBYFLOAT key increment 
+描述：让当前key值增加increment，increment可以是双精度浮点数； 
+返回值：增加后的浮点数字符串； 
+举例：DECRBYFLOAT num 3.0； 
+APPEND key value 
+描述：字符串追加，若key不存在，则新建key； 
+返回值：追加后，字符串的长度整数值； 
+举例：APPEND num 5； 
+STRLEN key 
+描述：获取字符串长度； 
+返回值：key存在，返回长度整数值； 
+              key不存在，返回0； 
+举例：STRLEN num； 
+注：STRLEN返回的是字符串实际占用的字节长度； 
+GETBIT key offset 
+描述：获取字符串转换为二进制后，第offset位的二进制数值，offset从0开始； 
+返回值：key存在，返回相应位的二进制数值； 
+              key不存在，返回0； 
+              offset超范围，返回0； 
+举例：GETBIT hel 1； 
+SETBIT key offset value 
+描述：替换第offset位的二进制数值，offset从0开始； 
+返回值：key存在，返回替换前的二进制位数值； 
+              key不存在，设置[字符串二进制长度，偏移量]之间所有的二进制位为0，返回0； 
+              offset超范围，设置[字符串二进制长度，偏移量]之间所有的二进制位为0，返回0； 
+举例：SETBIT num 6 1； 
+注：设置offset比实际key值长度大时，redis会分配内存，自动补齐所有偏移空间，并把二进制位置为0；当偏移量设置过大时，会造成服务器因分配内存而暂时阻塞，同时造成空间浪费； 
+BITCOUNT key [start] [end] 
+描述：获取字符串转换为二进制后，所有二进制位为1的个数，start从0开始； 
+返回值：key存在，所有二进制位为1的个数； 
+              key不存在，返回0； 
+举例：BITCOUNT num 0 15； 
+BITOP operation destkey key1 [key2 ...] 
+描述：对多个字符串类型的键值进行位运算，并将结果存放在destkey参数中；运算操作包括：AND/OR/XOR/NOT； 
+返回值：key存在，返回位操作的结果； 
+              key不存在，返回0； 
+举例：BITOP AND num3 num1 num2； 
+BITPOS key [0|1] [start] [end] 
+描述：获取第一个二进制位为0或1的索引位置，索引位置从0开始，可以指定起始字节索引和结束字节索引，返回的索引位置是从头开始算的，与起止字节位置无关； 
+返回值：key存在，返回偏移量； 
+              key不存在，返回-1； 
+举例：BITOP AND num3 num1 num2； 
+版本：>= 2.8.7 
+注：利用位运算可以非常紧凑的存储布尔值； 
+
+4.散列类型相关命令 
+HSET key field value 
+描述：给字段赋值； 
+返回值：插入操作，返回1； 
+              更新操作，返回0； 
+举例：HSET user name zhangsanfeng 
+注：redis 中不同数据类型的key需要用不同的数据类型命令去操作，否则会报错：(error) WRONGTYPE Operation against a key holding the wrong kind of value；例外：SET命令可以覆盖其它类型的key，不管其存不存在； 
+
+HMSET key field1 value1 [field2 value2 ...] 
+描述：给多个字段赋值； 
+返回值：操作成功，返回OK; 
+举例：HMSET user name qiaofeng passwd 654321 
+HSETNX key field value 
+描述：设置字段值，如果字段存在，则不做任何操作； 
+返回值：执行操作，返回1； 
+              未执行操作，返回0； 
+举例：HSETNX user name abc 
+HGET key field 
+描述：获取字段值； 
+返回值：字段存在，返回值； 
+              字段不存在，返回nil； 
+举例：HGET user name 
+HMGET key field1 [field2 ...] 
+描述：获取多个字段值； 
+返回值：字段存在，返回值； 
+              字段不存在，返回nil； 
+举例：HMGET user name passwd 
+HGETALL key 
+描述：获取key下所有字段名和字段值； 
+返回值：key存在，返回列表； 
+              key不存在，返回(empty list or set); 
+举例：HGETALL user; 
+HEXISTS key field 
+描述：判断一个字段是否存在； 
+返回值：字段存在，返回1； 
+              字段不存在，返回0； 
+              key不存在，返回0; 
+举例：HEXISTS user id; 
+HINCRBY key field increment 
+描述：将指定字段增加increment，increment可以为负数； 
+返回值：正常，返回增加后的值； 
+              类型异常，返回(error) ERR hash value is not an integer； 
+举例：HINCRBY user id 1； 
+HDEL key field1 [field2 …] 
+描述：删除一个或多个字段； 
+返回值：返回删除字段的个数； 
+举例：HDEL user name passwd； 
+HKEYS key 
+描述：获取指定key的所有字段名； 
+返回值：返回当前key下所有字段名； 
+举例：KEYS user ； 
+HKEYS key 
+描述：获取指定key的所有字段值； 
+返回值：返回当前key下所有字段值； 
+举例：HVALS user； 
+HLEN key 
+描述：获取指定key的字段数量； 
+返回值：key存在，返回当前key的字段数量； 
+              key不存在，返回0； 
+举例：HLEN user； 
+5.列表类型相关命令 
+LPUSH key value1 [value2 ...] 
+描述：向列表左端添加一个或多个元素，前面的元素先入队列； 
+返回值：添加元素后，队列的长度； 
+举例：LPUSH queue val1 val2； 
+RPUSH key value1 [value2 ...] 
+描述：向列表右端添加元素，前面的元素先入队列； 
+返回值：添加元素后，队列的长度； 
+举例：RPUSH queue val1 val2； 
+LPOP key 
+描述：从队列左边弹出弹出一个元素，弹出的元素会从列表中删除； 
+返回值：队列非空，返回弹出的元素； 
+              队列为空，返回(nil)； 
+举例：LPOP queue； 
+RPOP key 
+描述：从队列右边弹出弹出一个元素，弹出的元素会从列表中删除； 
+返回值：队列非空，返回弹出的元素； 
+              队列为空，返回(nil)； 
+举例：RPOP queue； 
+注：使用上述命令的组合，可以实现栈或者队列； 
+LLEN key 
+描述：获取列表中元素的个数； 
+返回值：返回队列长度； 
+举例：LLEN queue； 
+注：LLEN效率为O(1)，直接获取现成值，不需要遍历统计所有元素，不同于关系型数据库的count(1)函数； 
+LRANGE key start stop 
+描述：获取列表中的某一片段，返回[start , stop]之间的所有元素，索引从0开始； 
+返回值：队列非空，返回获取到的元素； 
+              队列为空，返回(empty list or set)； 
+              start比stop靠后，返回(empty list or set)； 
+       stop大于队列长度，返回[start,队列长度-1]区间的元素； 
+              LRANGE queue 0 -1，返回所有元素； 
+举例：LRANGE queue 0 1； 
+LREM key count value 
+描述：删除列表中前count个值为value的元素； 
+           count>0，从左边开始删除前count个值为value的元素； 
+           count<0，从右边开始删除前|count|个值为value的元素； 
+           count=1，删除所有值为value的元素； 
+返回值：返回实际删除元素的个数； 
+举例：LREM queue 0 val1； 
+LINDEX key index 
+描述：获取列表中指定索引的元素值，索引从0开始； 
+           index>=0，从左边计算索引； 
+           index<0，从右边计算索引，最右边元素索引为-1； 
+返回值：索引元素存在，返回相应元素； 
+              索引元素不存在，返回(nil)； 
+举例：LINDEX queue 1； 
+LSET key index value 
+描述：设置列表中指定索引的元素值，索引从0开始； 
+           index>=0，从左边计算索引； 
+           index<0，从右边计算索引，最右边元素索引为-1； 
+返回值：索引元素存在，返回OK； 
+              索引元素不存在，返回(error) ERR index out of range； 
+举例：LSET queue 2 3； 
+LTRIM key start end 
+描述：删除列表中[start,end]以外所有的元素； 
+返回值：删除成功，返回OK； 
+举例：LTRIM queue 0 0； 
+注：LTRIM常与LPUSH一起使用，限制元素的数量； 
+LINSERT key BEFORE|AFTER pivot value 
+描述：从左到右查找值为pivot的元素，然后在其前/后插入元素； 
+返回值：插入后的列表元素个数； 
+举例：LINSERT queue BEFORE val2 val1； 
+RPOPLPUSH source destination 
+描述：弹出source列表右边的值，放入到destination列表的左边；整个过程是原子操作； 
+返回值：source不为空，返回转移的元素值； 
+              source为空，返回(nil)； 
+举例：POPLPUSH queue queue1； 
+注：RPOPLPUSH queue queue，则RPOP不会删除弹出的元素； 
+6.集合类型相关命令 
+SADD key member1 [member2 …] 
+描述：向集合中添加一个或者多个元素；如果有重复元素，则忽略重复元素； 
+返回值：添加元素的个数； 
+举例：SADD set1 val1 val2； 
+SREM key member1 [member2 …] 
+描述：删除集合中的一个或者多个元素； 
+返回值：删除元素的个数； 
+举例：SREM set1 val1 val2； 
+SMEMBERS key 
+描述：返回集合中所有元素； 
+返回值：删除元素的个数； 
+举例：SMEMBERS set1； 
+SISMEMBER key member 
+描述：判断元素在集合中是否存在； 
+返回值：元素存在，返回1； 
+              元素不存在，返回0； 
+              key不存在，返回0； 
+举例：SISMEMBER set1 val2； 
+SCARD key 
+描述：获取集合中的元素个数； 
+返回值：返回并集运算后的结果； 
+举例：SCARD set1； 
+SDIFF key1 [key2 ...] 
+描述：对多个集合进行差集运算，多个集合运算顺序从左到右依次计算； 
+返回值：返回差集运算后的结果； 
+举例：SDIFF set1 set2； 
+SINTER key1 [key2 ...] 
+描述：对多个集合进行交集运算； 
+返回值：返回交集运算后的结果； 
+举例：SINTER set1 set2； 
+SUNION key1 [key2 ...] 
+描述：对多个集合进行并集运算； 
+返回值：返回并集运算后的结果； 
+举例：SINTER set1 set2； 
+SDIFFSTORE destination key1 [key2 …] 
+描述：执行集合的差集运算，并将结果赋给destination集合 ； 
+返回值：返回并集运算后的结果； 
+举例：SDIFFSTORE set3 set1 set2； 
+SINTERSTORE destination key1 [key2 …] 
+描述：执行集合的交集运算，并将结果赋给destination集合 ； 
+返回值：返回并集运算后的结果； 
+举例：SINTERSTORE set3 set1 set2； 
+SUNIONSTORE destination key1 [key2 …] 
+描述：执行集合的并集运算，并将结果赋给destination集合 ； 
+返回值：返回并集运算后的结果； 
+举例：SUNIONSTORE set3 set1 set2； 
+SRANDMEMBER key [count] 
+描述：随机获取一个元素或多个元素 ； 
+           count > 0 ，随机从集合中获取count个不重复的元素； 
+           count < 0 ，随机从集合中获取|count|个元素，可能重复； 
+返回值：； 
+举例：SSRANDMEMBER set3 5； 
+注：因为集合类型基于哈希表实现，在执行SRANDMEMBER命令时，首先会随机选择一个桶，再在桶中随机选择一个元素返回；所以元素所在的桶中元素数量越少，被选中的可能性就越大； 
+SPOP key 
+描述：从集合中随机弹出一个元素，返回元素的值，并从集合中删除 ； 
+返回值：返回弹出的元素； 
+举例：SPOP set3； 
+7.有序集合类型相关命令 
+ZADD key score1 member1 [score2 member2 ...]  
+描述：向集合中添加元素，如果元素已经存在，则更新分数，分数既支持整数，也支持浮点数 ； 
+返回值：新加入到集合中的元素个数，更新的元素不计数； 
+举例：ZADD zset1 90 ele1 70 ele2 80 ele3； 
+ZSCORE key member 
+描述：获取元素的分数 ； 
+返回值：元素存在，返回元素分数； 
+              元素不存在，返回(nil)； 
+              key不存在，返回(nil)； 
+举例：ZSCORE zset1 ele1； 
+ZRANGE key start stop [WITHSCORES] 
+描述：按照从小到大的顺序，返回[start,stop]区间内的元素，可以连同分数返回； 
+返回值：查询到的元素及分数； 
+示例：ZRANGE zset1 0 -1 WITHSCORES； 
+ZREVRANGE key start stop [WITHSCORES] 
+描述：按照从大到小的顺序，返回[start,stop]区间内的元素，可以连同分数返回； 
+返回值：查询到的元素及分数； 
+示例：ZREVRANGE zset1 0 -1 WITHSCORES； 
+注：ZRANGE,ZREVRANGE支持中文排序； 
+ZRANGEBYSCORE key min max [WITHSCORES] [LIMIT offset count] 
+描述：从小到大返回分数值在[min,max]区间的所有元素，可以返回分数值，可以限制从第offset个结果开始返回count个元素，如果是开区间，则在分数前加上"("，分数支持正无穷+inf,负无穷-inf 
+返回值：满足筛选条件的列表； 
+示例：ZRANGEBYSCORE zset1 (80 +inf WITHSCORES LIMIT 0 2 
+ZINCRBY key increment member 
+描述：增加一个元素的分数，increment可以为负数； 
+返回值：返回增加后的分数； 
+示例：INCRBY zset1 1 ele4； 
+ZCARD key 
+描述：获得集合中元素的数量； 
+返回值：返回集合中元素数量； 
+示例：ZCARD zset1； 
+ZCOUNT key min max 
+描述：获得指定分数范围内的元素个数； 
+返回值：符合条件的个数； 
+示例：ZCOUNT zset1 -inf +inf； 
+ZREM key member1 [member2 …] 
+描述：删除一个或多个指定元素； 
+返回值：成功删除元素的数量，不包含不存在的元素个数； 
+示例：ZCOUNT zset1 -inf +inf； 
+ZREMRANGEBYRANK key start stop 
+描述：按照分数从小到大的顺序排名，删除排名在[start,stop]区间内的元素； 
+返回值：成功删除元素的数量，不包含不存在的元素个数； 
+示例：REMRANGEBYRANK zset1 2 4； 
+ZREMRANGEBYSCORE key min max 
+描述：删除分数在[start,stop]区间内的元素； 
+返回值：成功删除元素的数量，不包含不存在的元素个数； 
+示例：ZREMRANGEBYSCORE zset1 (80 90； 
+ZINTERSTORE destination numkeys key1 [key2 …] [WEIGHTS weight1 [weight2 …]] [AGGREGATE SUM | MIN | MAX] 
+描述：集合交集运算，并将结果赋给destination，可以设置权重，可以设置分数运算策略，默认权重为1，默认策略为SUM； 
+返回值：返回destination中的元素个数； 
+示例：ZINTERSTORE zset3 2 zset1 zset2 WEIGHTS 1 0.1 AGGREGATE SUM； 
+ZUNIONSTORE destination numkeys key1 [key2 …] [WEIGHTS weight1 [weight2 …]] [AGGREGATE SUM | MIN | MAX] 
+描述：集合并集运算，并将结果赋给destination，可以设置权重，可以设置分数运算策略； 
+返回值：返回destination中的元素个数； 
+示例：ZUNIONSTORE zset3 2 zset1 zset2 WEIGHTS 1 0.1 AGGREGATE SUM；
+

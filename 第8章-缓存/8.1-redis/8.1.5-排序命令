@@ -1,0 +1,67 @@
+注：SORT命令是redis中最强大、最复杂的命令之一，使用不当，会造成性能瓶颈；
+ 
+1.SORT命令
+
+SORT key [ALPHA] [LIMIT offset count] [BY key | key->字段名] [ASC | DESC] [GET key | key->字段名]+ [STORE destkey]
+说明：
+1）SORT命令可以对列表类型、集合类型、有序集合类型键进行排序，并且可以完成与关系数据库中的连接查询相类似的任务；
+2）对有序集合类型排序时，忽略元素的分数，只针对元素自身的值进行排序；
+3）ALPHA参数，指定按照字典顺序排序，能够支持字母和中文；如果没有加ALPHA参数的话，SORT命令会尝试将所有元素转换成双精度浮点数来比较，如果无法转换，则报错；
+4）LIMIT可以指定从第offset个元素开始，返回count个元素；常用于分页操作；
+5）BY 参数可以指定按照关联键排序，参数可以是字符串类型或者散列类型键的某个字段，此功能可以用作关联查询，类比：关系数据库中的多表关联；参数支持"*"，"->"两个占位符；
+6）BY后面的参数可以使用""，执行时，SORT命令会用带排序集合的值替换，然后将替换后的字符串作为key获取值进行排序；
+7）BY后面的参数可以使用"->属性名"，标识散列类型中的属性名，然后取出散列类型的属性值进行排序；
+8）当BY后面的key是常量键名时，SORT不执行排序操作，直接返回带排序key中元素；
+9）GET参数不影响排序，而是指定SORTE返回的结果不在是自身的值，而是GET参数中指定的键值；参数支持"*"，"->"两个占位符；
+10）GET参数可以有多个；
+11）GET # 表示返回元素本身的值；
+举例：SORT list1 ALPHA BY item* GET item*
+12）STORE参数，能够将SORT返回结果保存到destkey中，destkey类型为列表类型；如果destkey已经存在，则覆盖；
+13）添加STORE参数后，SORT返回值变为返回结果的个数；
+ 
+2.使用规范
+ 
+SORT命令的时间复杂度是O(n + mlog(m))
+其中：n表示带排序key中包含的元素数；
+          m表示排序后返回的元素个数；
+ 
+1）尽可能减少待排序键中元素的数量；（减少n）
+2）使用LIMIT参数只获取需要的数据；(减少m)
+3）如果要排序的数据量较大，尽可能使用STORE参数将结果缓存；(减少分配暂存空间的大小)
+
+
+redis 127.0.0.1:6379> lpush mylist 23  
+(integer) 1  
+redis 127.0.0.1:6379> lpush mylist 15  
+(integer) 1  
+redis 127.0.0.1:6379> lpush mylist 50   
+(integer) 1  
+redis 127.0.0.1:6379> lpush mylist 7   
+(integer) 1  
+redis 127.0.0.1:6379> sort mylist  
+1) "7"   
+2) "15"   
+3) "23"   
+4) "50"   
+
+
+redis 127.0.0.1:6379> hset d-7 field 5  
+(integer) 1  
+redis 127.0.0.1:6379> hset d-15 field 1  
+(integer) 1  
+redis 127.0.0.1:6379> hset d-23 field 9  
+(integer) 1  
+redis 127.0.0.1:6379> hset d-50 field 3  
+(integer) 1  
+redis 127.0.0.1:6379> sort mylist by 'd-*->field'  
+1) "15"   
+2) "50"   
+3) "7"   
+4) "23"   
+
+
+redis 127.0.0.1:6379> sort mylist by 'd-*->field' get 'd-*->field'  
+1) "1"   
+2) "3"   
+3) "5"   
+4) "9"   
