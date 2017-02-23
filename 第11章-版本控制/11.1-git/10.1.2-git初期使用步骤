@@ -1,0 +1,46 @@
+在这里仅讨论普通rd的使用步骤，不讨论git server端的搭建。
+先安装git客户端（此处不缀诉）
+
+1.
+在git server端（通常是通过web页面）创建一个远程仓库
+2.
+新建一个仓库（直接从远程克隆）
+git clone git@git.afpai.com:zxc7928932/editor.git
+cd editor
+touch README.md
+git add README.md
+git commit -m "add README"
+git push origin master
+
+
+本地已经有仓库（代码文件）了
+cd existing_folder
+git init
+git remote add origin git@git.afpai.com:zxc7928932/editor.git
+git push origin master
+
+3.如果git remote add origin 添加的是基于ssh协议的连接。那在本机可以cat ~/.ssh/id_rsa.pub,输出的公钥然后复制到server端的authorizedkeys里。就可以免秘pull push了
+
+command list
+
+git clone 克隆仓库
+git add 添加某一修改、增加的文件到快照（本地临时缓存修改）
+git commit 将所有的快照作为某一次提交记录下来
+git pull 更新代码（从某一远程分支更新到本地某一分支）
+git push 将本地的commit提交（从本地某一分支更新到远程分支）
+git checkout（本地切换分支）
+git merge（合并分支）
+git status 查看本地文件状态
+git log 列出commit
+
+新仓库操作流程
+1.clone远程仓库
+2.本地建立dev分支，push -u origin dev让远程建立dev分支
+3.建立xx功能分支，
+4.在xx分支上修改新增文件
+5.此分支上add  commit
+6.功能开发测试完成
+7.checkout dev切换到dev
+8.merge xx分支
+9.git pull更新 （此处可能冲突）
+10.git push  
