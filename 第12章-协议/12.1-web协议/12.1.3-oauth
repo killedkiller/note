@@ -1,0 +1,49 @@
+oauth2.0
+
+
+（A）用户访问客户端，后者将前者导向认证服务器。
+（B）用户选择是否给予客户端授权。
+（C）假设用户给予授权，认证服务器将用户导向客户端事先指定的"重定向URI"（redirection URI），同时附上一个授权码。
+（D）客户端收到授权码，附上早先的"重定向URI"，向认证服务器申请令牌。这一步是在客户端的后台的服务器上完成的，对用户不可见。
+（E）认证服务器核对了授权码和重定向URI，确认无误后，向客户端发送访问令牌（access token）和更新令牌（refresh token）。
+
+简化模式(仅限web？)
+简化模式（implicit grant type）不通过第三方应用程序的服务器，直接在浏览器中向认证服务器申请令牌，跳过了"授权码"这个步骤，因此得名。所有步骤在浏览器中完成，令牌对访问者是可见的，且客户端不需要认证。
+
+（A）客户端将用户导向认证服务器。
+（B）用户决定是否给于客户端授权。
+（C）假设用户给予授权，认证服务器将用户导向客户端指定的"重定向URI"，并在URI的Hash部分包含了访问令牌。
+（D）浏览器向资源服务器发出请求，其中不包括上一步收到的Hash值。
+（E）资源服务器返回一个网页，其中包含的代码可以获取Hash值中的令牌。
+（F）浏览器执行上一步获得的脚本，提取出令牌。
+（G）浏览器将令牌发给客户端。
+
+微信web登入
+注册得到以下信息{
+appid	是	公众号的唯一标识
+redirect_uri	是	授权后重定向的回调链接地址，请使用urlencode对链接进行处理
+response_type	是	返回类型，请填写code
+scope	是	应用授权作用域，snsapi_base （不弹出授权页面，直接跳转，只能获取用户openid），snsapi_userinfo （弹出授权页面，可通过openid拿到昵称、性别、所在地。并且，即使在未关注的情况下，只要用户授权，也能获取其信息）
+state	否	重定向后会带上state参数，开发者可以填写a-zA-Z0-9的参数值，最多128字节}
+请求认证链接，成功认证跳转
+至 redirect_uri/?code=CODE&state=STATE
+
+redirect_uri的后端根据code得到access_token
+处理access_token后跳转指定链接
+
+
+不暴露access_token 与 secret
+理解为什么这么做
+
+
+access_token是完成认证的最后一步，但并不是最终目的，目的是使用access_token得到各种资源。
+
+. While mostly an artifact of how the OAuth specification evolved, 
+the two-Token design offers some usability and security features which made it worthwhile to stay in the specification.
+ OAuth operates on two channels: a front-channel which is used to engage the User and request authorization, 
+ and a back-channel used by the Consumer to directly interact with the Service Provider.
+  By limiting the Access Token to the back-channel, the Token itself remains concealed from the User. 
+  This allows the Access Token to carry special meanings and to have a larger size than the front-channel Request Token which is exposed to the User when requesting authorization, and in some cases needs to be manually entered (mobile device or set-top box).
+
+access_token不暴露到客户端（如果服务提供商直接吐给客户端，则监控网络就可以抓取到token，加密也没用，因为解密也要在客户端做，相当于暴露了）
+同 获得access_token的方法也不能暴露

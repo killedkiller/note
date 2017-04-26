@@ -1,0 +1,5 @@
+1.通用基类（一些方法用拓展写 Saf_SmartMain(解析zybuss内容，解析cgi参数)）
+2.拓展解析得到uid
+3.有uid得到用户的一些通用信息（appucloud）
+4.通用信息入redis
+5.

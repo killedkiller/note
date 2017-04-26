@@ -1,0 +1,51 @@
+1.1对多问题
+场景:test表要根据type、sequence字段进行筛选
+create table `test`(
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`type` int(11) NOT NULL,
+	`sequence` int(11) NOT NULL,
+	`xxx` int(11) NOT NULL,
+	`xxx` int(11) NOT NULL,
+	`xxx` int(11) NOT NULL,
+	`xxx` int(11) NOT NULL,
+	`time` int(11) NOT NULL,
+) 
+
+若某个id可对应多个type
+为了使用到索引可以将 
+id,type，sequence拆分成单独的筛选条件表然后存储，
+create table `sequence`(
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`type` int(11) NOT NULL,
+	`sequence` int(11) NOT NULL
+	)
+实际做查询的时候join进行查询
+select xx from test join sequence on sequece.id=test.id where sequence.type=xxxx;
+=select xx from test where id in (select id sequence from sequence where type=xxxx;
+但是如果还需要用time做排序，如：（select xx from test join sequence on sequece.id=test.id where sequence.type=xxxx order by time）就会用到filesort,
+所以一是改变筛选条件表
+create table `sequence`(
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`type` int(11) NOT NULL,
+	`sequence` int(11) NOT NULL,
+	`time` int(11) NOT NULL
+	)
+
+二是当有一对的时候不拆出筛选条件表
+将可一对的筛选条件拆为多个
+
+create table `test`(
+	`id` int(11) NOT NULL AUTO_INCREMENT,
+	`type1` int(11) NOT NULL,
+	`type2` int(11) NOT NULL,
+	`type3` int(11) NOT NULL,
+	`sequence` int(11) NOT NULL,
+	`xxx` int(11) NOT NULL,
+	`xxx` int(11) NOT NULL,
+	`xxx` int(11) NOT NULL,
+	`xxx` int(11) NOT NULL,
+	`time` int(11) NOT NULL,
+) 
+
+select * from test where type1=1 and type2=0 and ...
+但是这样需要更多的索引。。。

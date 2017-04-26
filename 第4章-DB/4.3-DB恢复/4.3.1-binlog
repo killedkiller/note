@@ -1,0 +1,44 @@
+首先开启binlog日志，编辑my.cnf文件，添加
+
+log-bin = mysql-bin    #开启二进制日志并指定路径及文件名，不设置的话默认在数据存放目录下，名称为hostname-bin.xxxxx
+
+建立一个测试数据库，创建一个表格，里面随便插入一些数据
+
+mysql > create database student;
+mysql > use student;
+mysql > create table student(id int,name varchar(10),age int);
+mysql > insert into student values ('1','tanglu','28'),('2','zouxiaolu','28'),('3','beibei','28');
+
+进行一次完整的备份，这样前3条数据已经做了备份
+
+mysqldump -u root -p student > student.sql
+
+继续插入4、5、6三条数据
+
+mysql> insert into student values('4','doudou','8');
+Query OK, 1 row affected (0.01 sec)
+
+mysql> insert into student values('5','mengmeng','28');      
+Query OK, 1 row affected (0.00 sec)
+
+mysql> insert into student values('6','haha','10');
+Query OK, 1 row affected (0.01 sec)
+
+误操作删除了之前创建的数据
+
+mysql> delete from student ;
+
+重启一次数据库或者执行数据库语句flush-logs来获得一个新的二进制日志文件，这样故障日志都在之前文件里
+
+mysql > flush logs;
+
+利用第一次的备份恢复数据，这样前面3条数据就恢复成功
+
+mysql -u root -p student < student.sql
+
+查看binlog日志，分析一些正常操作的position位置或者是操作时间，然后导出这部分日志并恢复
+
+mysqlbinlog hostname-bin.000001
+mysqlbinlog server1-bin.000003 --start-position=1170 --stop-position=1294 > server2.sql
+
+最后进入数据库查看数据已经按条目恢复！

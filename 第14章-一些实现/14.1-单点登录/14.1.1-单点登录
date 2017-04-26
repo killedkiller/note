@@ -1,0 +1,7 @@
+单点登录简单实现
+1.依靠uid,phone,os,time()之类的东西生成加密串strA(zybuss)
+2.redis set strA->{用户相关信息，uid,uname,phone}
+3.单点登录分为（全端单点和端单点） 登录时,将已有session（zybuss）至为踢出状态(遍历数据库现有的zybusss，将redis其key对应的value至为空,将数据库中的session字段也更新为 新的zybuss){"uniq":["新zybuss"]}
+4.setcookie('zybuss',value);
+5.限制规矩uid,phone,os,time()生成的字符串的唯一性决定，如果没有time()，同一个端还是可以登录多个
+退出的时候删session

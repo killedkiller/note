@@ -1,0 +1,3 @@
+--skip-extended-insert 单行单行导出
+--single-transaction 不锁表
+-d 结构
