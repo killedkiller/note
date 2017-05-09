@@ -1,2 +1,8 @@
 php内存泄漏
-数据迁移
+mvcc
+长连接
+缓存 etag
+http权威指南
+rebase
+单例
+反射

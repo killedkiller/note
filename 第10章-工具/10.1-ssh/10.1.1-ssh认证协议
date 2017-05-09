@@ -1,6 +1,6 @@
 SSH 的认证协议
 常见的 SSH 协议认证方式有如下几种：
-基于口令的验证方式（password authentication method），通过输入用户名和密码的方式进行远程机器的登录验证。
-基于公共密钥的安全验证方式（public key authentication method），通过生成一组密钥（public key/private key）来实现用户的登录验证。
-基于键盘交互的验证方式（keyboard interactive authentication method），
+1.基于口令的验证方式（password authentication method），通过输入用户名和密码的方式进行远程机器的登录验证。
+2.基于公共密钥的安全验证方式（public key authentication method），通过生成一组密钥（public key/private key）来实现用户的登录验证。
+3.基于键盘交互的验证方式（keyboard interactive authentication method），
 通过服务器向客户端发送提示信息，然后由客户端根据相应的信息通过手工输入的方式发还给服务器端。（可定制化服务配置 如软token）
