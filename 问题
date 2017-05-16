@@ -6,3 +6,6 @@ http权威指南
 rebase
 单例
 反射
+ioc
+工厂模式
+容器
