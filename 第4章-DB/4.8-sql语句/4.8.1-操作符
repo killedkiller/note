@@ -1,0 +1,18 @@
+ISNULL:
+mysql> SELECT ISNULL(1+1);
+        -> 0
+mysql> SELECT ISNULL(1/0);
+        -> 1
+CASE AS:
+mysql> SELECT CASE WHEN 1>0 THEN 'true' ELSE 'false' END;
+        -> 'true'
+select case course_id when 5 then '2333' else '2334' end as sc from tblWKCourseSubscribe;
+
+mysql> SELECT CASE BINARY 'B'
+    ->     WHEN 'a' THEN 1 WHEN 'b' THEN 2 END;
+        -> NULL
+select case  when course_id=5 then '2333' else '2334' end as sc from tblWKCourseSubscribe;
+select case  when course_id=5 then '2333' when id =2 then '22222' else '2334' end as sc from tblWKCourseSubscribe;
+IFNULL:
+mysql> SELECT ISNULL(NULL,0);
+	   ->0

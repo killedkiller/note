@@ -1,5 +1,4 @@
 php内存泄漏
-mvcc
 长连接
 缓存 etag
 http权威指南
@@ -13,3 +12,4 @@ ioc
 
 idea reload和热加载的关系
 jsp
+gap lock
