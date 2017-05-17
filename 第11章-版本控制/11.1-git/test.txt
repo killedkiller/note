@@ -3,7 +3,7 @@ sdsadsd
 
 <<<<<<< HEAD
 ads
-sdassawww
+sdassa
 =======
 sdsadsdqqq
 >>>>>>> parent of c844a4a... test3
