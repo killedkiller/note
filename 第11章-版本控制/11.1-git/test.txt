@@ -1,8 +1,12 @@
 <<<<<<< HEAD
 sdsadsd
 
+<<<<<<< HEAD
 ads
 sdassa
 =======
 sdsadsd
 >>>>>>> parent of c844a4a... test3
+=======
+ads
+>>>>>>> parent of 5f02e59... test4
