@@ -50,6 +50,9 @@ TYPE key
 描述：获取键值对应的数据类型； 
 返回值：string(字符串类型)，hash(散列类型)，list(列表类型)，set(集合类型)，zset(有序集合类型)；//没有字符 
 举例：TYPE bar； 
+
+
+
 3.字符串类型命令 
 SET key value 
 描述：设值 
@@ -125,6 +128,9 @@ BITPOS key [0|1] [start] [end]
 版本：>= 2.8.7 
 注：利用位运算可以非常紧凑的存储布尔值； 
 
+
+
+
 4.散列类型相关命令 
 HSET key field value 
 描述：给字段赋值； 
@@ -185,6 +191,9 @@ HLEN key
 返回值：key存在，返回当前key的字段数量； 
               key不存在，返回0； 
 举例：HLEN user； 
+
+
+
 5.列表类型相关命令 
 LPUSH key value1 [value2 ...] 
 描述：向列表左端添加一个或多个元素，前面的元素先入队列； 
@@ -254,6 +263,9 @@ RPOPLPUSH source destination
               source为空，返回(nil)； 
 举例：POPLPUSH queue queue1； 
 注：RPOPLPUSH queue queue，则RPOP不会删除弹出的元素； 
+
+
+
 6.集合类型相关命令 
 SADD key member1 [member2 …] 
 描述：向集合中添加一个或者多个元素；如果有重复元素，则忽略重复元素； 
@@ -312,6 +324,12 @@ SPOP key
 描述：从集合中随机弹出一个元素，返回元素的值，并从集合中删除 ； 
 返回值：返回弹出的元素； 
 举例：SPOP set3； 
+
+
+
+
+
+
 7.有序集合类型相关命令 
 ZADD key score1 member1 [score2 member2 ...]  
 描述：向集合中添加元素，如果元素已经存在，则更新分数，分数既支持整数，也支持浮点数 ； 
