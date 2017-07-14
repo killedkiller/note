@@ -1,0 +1,82 @@
+常规
+pwd
+wc
+who
+ls
+cp
+man
+rm
+mkdir
+chmod
+chown
+>
+>>
+zip
+tar
+time
+touch
+telnet
+scp
+ssh
+make
+ln
+uname
+alias
+sudo
+su
+gcc
+history
+passwd
+mv
+mail
+echo
+
+计算空间：
+df
+du -sh
+查找:
+locate
+whereis
+find yinjunmin/ -name 'up*
+find . -maxdepth 1 -type f //only file no directory 查找深度1
+
+文件传输
+sz xx
+rz -bye
+wget --limit-rate=2m ftp://$username:$passwd@192.168.6.97:/home/iknow/ -O 文件名
+scp homework@192.168.1.160:/home/homework/yinjunmin/list .
+scp list  homework@192.168.1.160:/home/homework/yinjunmin/list
+
+
+负载
+top
+w
+uptime
+
+进程
+nohup xxx &
+bg
+fg
+kill
+ps
+ctrl + z//暂停放到后台
+jobs
+
+网络
+netstat -ano
+ping
+ifconfig
+
+运行
+cxx | xargs
+
+显示
+tail
+more
+less
+head
+cat
+
+编辑
+vi
+geit

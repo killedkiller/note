@@ -1,0 +1,2 @@
+ awk -F '\t' '{print "update tblBlackboardArticle set recommend="$3",type="$2" where id="$1}' tmp
+ls -l |awk 'BEGIN {size=0;} {size=size+$5;} END{print "[end]size is ", size/1024/1024,"M"}' 
