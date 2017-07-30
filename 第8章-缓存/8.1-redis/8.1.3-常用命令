@@ -387,3 +387,18 @@ ZUNIONSTORE destination numkeys key1 [key2 …] [WEIGHTS weight1 [weight2 …]] 
 返回值：返回destination中的元素个数； 
 示例：ZUNIONSTORE zset3 2 zset1 zset2 WEIGHTS 1 0.1 AGGREGATE SUM；
 
+redis事务能够保证一个事务内的命令依次执行而不会在中途插入其它命令；因为redis本身是单线程处理，所以相当于序列化的事务隔离级别；
+事物
+MULTI
+描述：标识事务开始的命令，后面对数据操作的命令将会被放入队列，暂不执行；
+返回值：OK
+ 
+EXEC
+描述：执行暂存队列里面的命令，相当于commit命令；
+返回值：事务队列中命令执行返回值列表；
+
+EXPIRE key seconds
+
+为给定 key 设置生存时间，当 key 过期时(生存时间为 0 )，它会被自动删除。
+
+Redis Watch 命令用于监视一个(或多个) key ，如果在事务执行之前这个(或这些) key 被其他命令所改动，那么事务将被打断

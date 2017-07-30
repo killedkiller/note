@@ -1,0 +1,10 @@
+setnx (set if not exist)
+getset (设置一个key的值，并返回原来的值，原子性)
+expire设置过期时间防止死活
+java在finally里释放锁，setnx->del getset->set//线程挂了finally也没了
+为了防止死锁要设置expire
+php中
+$redis->multi(); //setnx与expire不是一个原子操作，可能执行完setnx该进程就挂了,所以写成事物
+$redis->setNX($key, $value);
+$redis->expire($key, $ttl);
+$redis->exec();
