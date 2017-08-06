@@ -5,3 +5,5 @@ SET GLOBAL tx_isolation='REPEATABLE-READ';//3.设置系统当前隔离级别
 SET SESSION tx_isolation='SERIALIZABLE';//4.设置当前会话隔离级别 
 
 select date_format(now(),'%y-%m-%d');
+
+use index/force index/ignore index

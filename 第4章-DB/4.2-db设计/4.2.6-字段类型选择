@@ -1,0 +1,13 @@
+数据类型：
+小更好，避免null
+Tinyint smallint mediumint int bigint,1byte,2byte,3byte,4byte,8byte|bit =byte*8
+-2^n-1~2^n-1 unsinged (2^n)-1
+INT(1) 和 INT(10)本身没有区别，但是加上(M)值后，会有显示宽度的设置。
+不用decimal
+Varchar:长度0-65535(max 65535byetes)
+Char(n):n bytes 
+5.0版本以上，varchar(50)，指的是50字符，无论存放的是数字、字母还是UTF8汉字（每个汉字3字节），都可以存放50个，所以长度可能超，然后被截断
+BLOB/TEXT(二进制/字符) 过大会被放到外部区域存储，mysql中存储指针
+TinyBlob 最大 255,Blob 最大 65K,MediumBlob 最大 16M,LongBlob 最大 4G
+Datetime/timestamp(8byte/4byte)
+DATE_FORMA()
