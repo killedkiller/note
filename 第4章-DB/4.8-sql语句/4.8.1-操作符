@@ -16,3 +16,5 @@ select case  when course_id=5 then '2333' when id =2 then '22222' else '2334' en
 IFNULL:
 mysql> SELECT ISNULL(NULL,0);
 	   ->0
+Concat:拼接字符串
+SELECT CONCAT(’My’, ‘S’, ‘QL’); -> ‘MySQL
