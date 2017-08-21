@@ -1,0 +1,561 @@
+server {
+    listen              8080 default_server;
+    listen              8443 ssl default_server;
+    server_name         *.zybang.com zuoye.baidu.com zuoyebang.baidu.com;
+
+    ssl_certificate      ssl/zybang_com.pem;
+    ssl_certificate_key  ssl/zybang_com.key;
+    ssl_session_timeout  5m;
+    ssl_session_cache shared:SSL:80m;
+    ssl_protocols  TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers  HIGH:!RC4:!MD5:!aNULL:!eNULL:!NULL:!DH:!EDH:!EXP:+MEDIUM;
+    ssl_prefer_server_ciphers   on;
+
+    more_set_headers    'Server: Apache';
+    error_page 400 403 404 500 501 502 503 504 505 $scheme://www.zybang.com/error.html?status=$status;
+
+
+#########域名适配模块配置###############
+    dna on;
+    dna_adapt_path "/home/homework/webserver/conf/adaption";
+    dna_url_adaption "device";
+    dna_cookie_adaption "device";
+    dna_log_path "/home/homework/clog/webserver/";
+
+#########OMP支持#######################
+    #设置产品线
+    set $product homework;
+    #设置子系统
+    set $subsys trans;
+    if ($http_x_bd_product) {
+        #从接入层获取产品线
+        set $product $http_x_bd_product;
+    }
+    if ($http_x_bd_subsys) {
+        #从接入层获取子系统
+        set $subsys $http_x_bd_subsys;
+    }
+
+    #判断用户访问协议
+    set $proto http;
+    if ($http_x_forwarded_proto) {
+        #从BLB获取用户访问协议
+        set $proto $http_x_forwarded_proto;
+    }
+
+    logid_name x_bd_logid;
+
+#   防盗链
+    if ($host = "m.baidu.com"){
+        return 403;
+    }
+
+    if ($host !~ "^((.*\.)?(baidu\.(com|com\.cn|cn)|91\.com|zuoyebang\.(com|cc|ren)|zybang\.com)|localhost|\d{1,3}(\.\d{1,3}){3})|(yike\.video)(:\d+)?$") {
+        return 403;
+    }
+
+    #if ($http_user_agent ~* "^(Java)(.*)"){
+    #    return 200;
+    #}
+
+#   如果是预览环境（办公网 && （  __tips__ arg || __tips__ cookie ），将请求全部重定向到tips集群
+    set $tips 0;
+    if ($remote_addr ~ "^(210\.13\.40\.(28|29|30|31)|210\.13\.41\.12[4-7]|172\.(16|17|26|27)\.\d+\.\d+|192\.168.\d+\.\d+)$") {
+        set $tips 2;
+    }
+
+    if ($arg___tips__ = "1") {
+        set $tips 3$tips;
+    }
+
+    if ($cookie___tips__ = "1") {
+        set $tips 4$tips;
+    }
+
+    if ($tips ~ "^(32|42|432)$") {
+        set $tips 1;
+    }
+
+    if ($tips = 1) {
+        rewrite ^/(.*)$ /__tips__/$1 last;
+    } 
+
+    location /__tips__/ {
+        rewrite ^/__tips__/(.*)$ /$1 break;
+        proxy_pass http://tips.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    more_set_headers   "X-TIPS: $tips"; 
+
+#   防止访问危险目录
+    location ~* /(\.svn|CVS|Entries|\.git){
+        deny all;
+    }
+
+    location ~* .*\.php$ {
+        deny all;
+    }
+
+    location ~* /\.(sql|bak|inc|old)$ {
+        deny all;
+    }
+
+    location ~* "^/test/.*" {
+        deny all;
+        access_log off;
+        error_log  /dev/null crit;
+    }
+
+    location /error.html {
+        root /home/homework/webroot;
+
+        if ($dna_device ~ "mobile"){
+            rewrite "^/error.html(.*)$" /zuoyebang/error_404/m-error.html$1 break;
+        }
+        if ($dna_device !~ "mobile"){
+            rewrite "^/error.html(.*)$" /zuoyebang/error_404/error.html$1 break; 
+        }
+    }
+
+    location /status {
+        allow 127.0.0.1/32;
+        allow 192.168.0.0/16;
+        allow 172.16.0.0/16; #无线
+        allow 172.26.0.0/16; #无线
+        allow 172.17.0.0/16; #有线
+        allow 172.27.0.0/16; #有线
+        deny all;
+
+        vhost_traffic_status_display;
+    }
+
+#   统一配置全局的rewrite规则请打开如下配置项，并配置当前目录下的rewrite文件
+    include            vhost/rewrite;
+
+    ########robots和验证########
+    location ~ ^/(jd_root.txt)$ {
+        root            /mnt/homework/webroot;
+        break;
+    }
+
+    ########静态资源########
+    location ~ ^/(static|s/|topic|zuoyebang|sitemap) {
+        root            /mnt/homework/webroot;
+        include allow-origin.conf;
+        break;
+    }
+
+    ########session集群########
+    location ~* "^/+(session)/.*" {
+#        return 404;
+#        access_log off;
+#        error_log  /dev/null crit;
+        proxy_pass http://session.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/napi/stat/addnoticev1" {
+        proxy_pass http://group.stat.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/+(nlogtj)/.*" {
+        proxy_pass http://server_nlogtj_all;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location = /uregister/api/pulloffmsg {
+        return 200;
+        access_log off;
+        error_log  /dev/null crit;
+    }
+
+    location ~* "^/+(uregister)/.*" {
+        proxy_pass http://push-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/voip/(errorreport|fdreport|winlog).*" {
+        proxy_pass http://server_error_report_all;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/voip/winstatic.*" {
+        proxy_pass http://server_winstat_all;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/+(mis)/.*" {
+        proxy_pass http://tips.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/captcha/genimage$" {
+        proxy_pass http://server_captcha_all;
+        proxy_intercept_errors  on;
+        include allow-origin.conf; 
+        break;
+    }
+
+    location ~* "^/sound2text/.*" {
+        proxy_pass http://server_sound2text_all;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+
+    ### 答疑提交集群 ###
+    #答疑打点
+    location ~* "^/qac/api/serviceuseract$" {
+        proxy_pass http://group.stat.na.bjcq;
+        proxy_intercept_errors  on; 
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/qac/sys/useraction$" {
+        proxy_pass http://qac-odp.na.bjcq;
+        proxy_intercept_errors  on; 
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/qac/sys/.*$" {
+        add_header Content-Type "text/plain;charset=utf-8"; 
+        return 200 "ok";
+        #access_log off;
+        error_log  /dev/null crit;
+    }  
+
+    location ~* "^/qac/.*" {
+        proxy_pass http://qac-odp.na.bjcq; @1
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/charge/ask/(followteacher|uploadimg|act|call|monthorder|packageorder)" {
+        proxy_pass http://qac-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/charge/tutor/call" {
+        proxy_pass http://qac-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/charge/teacherapi/(update|upload|act)" {
+        proxy_pass http://qac-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/charge/coupon/(sharegen|pickup|paycheck)" {
+        proxy_pass http://qac-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf; 
+        break;
+    }
+
+    ######### apollo模块rewrite规则
+    location ~* "^/apollo/" {
+        proxy_pass http://dayi-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+ 
+    # 模糊匹配(注意,proxy_pass)
+    location ~* "^/charge/activity/couponpick" {
+        proxy_pass http://napi.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+ 
+    location ~* "^/charge/activity/(userguide|zhoumo|coupon)" {
+        proxy_pass http://dayi-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+ 
+    location ~* "^/charge/ask/(list|detail|feedback)" {
+        proxy_pass http://dayi-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+ 
+    location ~* "^/charge/api/appinfo" {
+	    default_type 'application/json; charset=utf-8';
+        return 200 '{"errNo":0,"errstr":"success","data":{"couponInfo":{"lastEndTime":0}}}';
+        access_log off;
+        error_log  /dev/null crit;
+        #proxy_pass http://dayi-odp.na.bjcq;
+        #proxy_intercept_errors  on;
+        #include allow-origin.conf;
+        #break;
+    }
+ 
+    location ~* "^/charge/student/(userinfo|monthreportlist|monthreport)" {
+        proxy_pass http://dayi-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+ 
+    # 模糊匹配(注意,proxy_pass)
+    location ~* "^/charge/tutor/repurchaselist" {
+        proxy_pass http://napi.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+ 
+    location ~* "^/charge/tutor/(evaluate|repurchase|itemlist|purchase|teacherstatus|teachers|recteachers|myteachers)" {
+        proxy_pass http://dayi-odp.na.bjcq;
+        include allow-origin.conf;
+        proxy_intercept_errors  on;
+        break;
+    }
+ 
+    # 模糊匹配(注意,proxy_pass)
+#    location ~* "^/charge/coupon/sharegen" {
+#        proxy_pass http://napi.na.bjcq;
+#        proxy_intercept_errors  on;
+#        break;
+#    }
+ 
+    location ~* "^/charge/coupon/(placeorder|list|share)" {
+        proxy_pass http://dayi-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+ 
+    location ~* "^/charge/wechatapi/(dayservice|monthreport|monthservice|servicedetail|purchase)" {
+        proxy_pass http://dayi-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+    ##########apollo end
+
+    ######### athena模块rewrite规则###########
+    location ~* "^/athena/" {
+        proxy_pass http://dayi-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+    #不需要切流量
+    location ~* "^/teacher/ucenter/teachertrainsubmit" {
+        proxy_pass http://web.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+    location ~* "^/teacher/ucenter/(pcteacherprinciple|pcleyupage|pccommonproblem|teachertrainlist|teachertraindetail|teachertrain|pcrecteacher|pcsalaryrank|pcorderlist|pcteacherdetail)" {
+        proxy_pass http://dayi-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+    location ~* "^/teacher/api/(teachermsglist|teachermsg)" {
+        proxy_pass http://dayi-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+    location ~* "^/charge/teacherapi/(conf|ctinfo|info)" {
+        proxy_pass http://dayi-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    ##########athena end##############
+
+    #xiaohan
+    location ~* "^/discuss/" {
+        proxy_pass http://dayi-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    #shenyunhao
+    location ~* "^/ivrcenter/ivr/" {
+        proxy_pass http://dayi-odp.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf; 
+        break;
+    } 
+
+    ########na集群########
+    location = /charge/register/smssend {
+        return 200;
+        access_log off;
+        error_log  /dev/null crit;
+    }
+
+    location ~* "^/+(chat|course|elive|airclass|zbase|teacherapp|im|fdactivity|teacherlive)/.*" {
+        proxy_pass http://course.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf; 
+        break;
+    }
+
+    location = /ucloud/task/mytask {
+        proxy_pass http://napi.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/ucloud/task/.*" {
+        proxy_pass http://napi.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/+(napi|access|practice|charge|appuser|assistant|biz|pay|game)/.*" {
+        proxy_pass http://napi.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    ########search集群########
+    location ~* "^/+(search)/.*" {
+        proxy_pass http://search.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+    ########pc&wap集群########
+
+    location ~* "^/+question/.*\.html$" {
+
+        #重定向http请求为https
+        if ($proto = "http") {
+            return 301 https://www.zybang.com$request_uri;
+        }
+
+        proxy_pass http://web.na.bjcq;
+        proxy_intercept_errors  on; 
+        include allow-origin.conf;
+        break;
+    } 
+
+    location ~* "^/+(pcassistant|question|usercenter|zuowen|vacation|channel|teacher|elearning|download)/.*" {
+        #usertrack on;
+        #usertrack_name      'ZYBID';
+        #usertrack_domain    '.zybang.com';
+
+        proxy_pass http://web.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+    location ~* "^/(download|answersearch)$" {
+        proxy_pass http://web.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/+gnmis/(weixin|ivr|web)/.*" {
+        proxy_pass http://web.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    location ~* "^/+gnmis/api/(guoyuanplayerlog|doublecall)$" {
+        proxy_pass http://web.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    ########spammis集群########
+    location ~* "^/+(spammis)/.*" {
+        proxy_pass http://server_spammis_all;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    ########scs短连接集群########
+    location ~* "^/msgsync/im$" {
+        proxy_pass http://msgsync.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf; 
+        break;
+    } 
+
+    #######APP下载############
+    location /download.html {
+        proxy_pass http://web.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    #######这是什么uri设计！########
+    location ~ "^/?$" {
+        #将非标准的host修正为标准host
+        set $req_host $host;
+        if ($host ~ "^(zuoyebang\.(com|cc|ren)|zybang\.com)$"){
+            set $req_host www.zybang.com;
+        }
+        if ($host ~ "^(yike\.video)$") {
+            set $req_host zhibo.zuoyebang.com;
+        }
+
+        #重定向http请求为https
+        if ($proto = "http") {
+            return 301 https://$req_host$request_uri;
+        }   
+        proxy_pass http://web.na.bjcq;
+        proxy_intercept_errors  on;
+        include allow-origin.conf;
+        break;
+    }
+
+    ########默认走到webroot中########
+    location / {
+        root  /mnt/homework/webroot;
+        include allow-origin.conf;
+        break;
+    }
+}
+
+注释：
+@1：proxy-pass,集群模式的请求转发，配合upstream.conf
