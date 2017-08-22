@@ -1,2 +1,28 @@
+awk
  awk -F '\t' '{print "update tblBlackboardArticle set recommend="$3",type="$2" where id="$1}' tmp
 ls -l |awk 'BEGIN {size=0;} {size=size+$5;} END{print "[end]size is ", size/1024/1024,"M"}' 
+sed 
+替换s
+替换文本中的字符串： 
+sed 's/book/books/' file
+直接编辑文件选项-i，
+会匹配file文件中每一行的第一个book替换为books： 
+sed -i 's/book/books/g' file
+-n选项和p命令一起使用表示只打印那些发生替换的行：
+sed -n 's/test/TEST/p' file 
+使用后缀 /g 标记会替换每一行中的所有匹配： 
+sed 's/book/books/g
+
+删除文件的第2行： 
+sed '2d' file  
+删除文件的第2行到末尾所有行： sed '2,$d' file 
+在test.conf文件第5行之前插入this is a test line： s
+
+sed -i '5i\this is a test line' test.conf
+每隔10行插入wait
+sed '1~10i\wait;'  your_file
+
+grep --color 
+grep -E
+grep -V
+grep
