@@ -1,0 +1,31 @@
+    public static function init($app_name = null)
+    {
+        if(self::$isInit)
+        {
+            return false;
+        }
+
+        self::$isInit = true;
+
+        // 设置默认timezone，避免PHP5.4或HHVM报warning
+        date_default_timezone_set('PRC');
+
+        // 初始化基础环境
+        self::initBasicEnv();
+
+        // 初始化App环境
+        self::initAppEnv($app_name);
+
+        // 初始化Ap框架
+        self::initAp();
+
+		// 初始化日志库
+        self::initLog($app_name);
+
+        // 执行产品线的auto_prepend
+        self::doProductPrepend();
+
+        return Ap_Application::app();
+    }
+odp提供了标准的webserver环境、标准php环境、AP框架、SAF社区业务框架、基础库、RAL资源访问层、KSARCH通用服务等组件
+Ap是一个C语言编写的PHP开发框架，也是ODP环境指定使用的PHP开发框架。
