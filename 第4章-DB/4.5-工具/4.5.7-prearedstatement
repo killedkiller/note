@@ -1,0 +1,4 @@
+用PreparedStatement 一般来说比Statement性能高：一个sql 发给服务器去执行，涉及步骤：语法检查、语义分析， 编译，缓存
+“inert into user values(1,1,1)”-二进制
+“inert into user values(2,2,2)”-二进制
+“inert into user values(?,?,?)”-二进制
