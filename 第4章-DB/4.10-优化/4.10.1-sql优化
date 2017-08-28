@@ -1,0 +1,9 @@
+explain问题：
+1.出现了Using temporary；
+2.rows过多，或者几乎是全表的记录数； 
+3.key 是 (NULL)；
+4.大表驱动小表
+5.出现filesort
+6.key_len使用非预期
+join:
+优化驱动表，选择小表

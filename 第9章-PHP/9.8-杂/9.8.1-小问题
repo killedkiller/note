@@ -1,0 +1,4 @@
+1.include, include_once, require or require_once?
+require* vs include*:throw a fatal with show a warning
+once vs not once:load first time or not
+2.
