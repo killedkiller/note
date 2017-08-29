@@ -1,0 +1,14 @@
+WebSocket是HTML5出的东西（协议），也就是说HTTP协议没有变化，或者说没关系，但HTTP是不支持持久连接的（长连接，循环连接的不算）,Websocket其实是一个新协议，跟HTTP协议基本没有关系，只是为了兼容现有浏览器的握手规范而已
+GET /chat HTTP/1.1
+Host: server.example.com
+Upgrade: websocket  //mark
+Connection: Upgrade //mark
+Sec-WebSocket-Key: x3JJHMbDL1EzLkh9GBhXDw==
+Sec-WebSocket-Protocol: chat, superchat
+Sec-WebSocket-Version: 13
+Origin: http://example.com
+
+基于单个tcp，客户端和服务器端的双全工传输和双向通信
+
+在实现websocket连线过程中，需要通过浏览器发出websocket连线请求，然后服务器发出回应，这个过程通常称为“握手” 。在 WebSocket API，浏览器和服务器只需要做一个握手的动作
+
