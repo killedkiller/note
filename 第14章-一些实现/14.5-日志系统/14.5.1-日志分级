@@ -1,0 +1,2 @@
+级别：这个可以参照大多数的三方库里面的做法，分为INFO，WARNING, ERROR，FATAL等等级别。
+正常：普通和warning，错误php自己有log
