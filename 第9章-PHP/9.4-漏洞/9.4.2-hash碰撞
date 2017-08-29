@@ -4,3 +4,7 @@ HP是使用单链表存储碰撞的数据，因此实际上PHP哈希表的平均
 
 使用：post攻击，利用post值键进行hash碰撞
 http://www.laruence.com/2011/12/30/2435.html
+
+5.3.9fix:增加：max_input_vars
+还记得我之前说的PHP Hash Collisions Ddos漏洞吧? 最初的时候, 开发组给出的修复方案, 采用的是如果超过max_input_vars, 就报错(E_ERROR), 继而导致PHP出错结束. 而后来, 为了更加轻量级的解决这个问题, 我们又改善了一下, 变成了如果超过max_input_vars, 就发出警告(E_WARNING), 并且不再往目的数组添加, 但是流程继续. 然后我们发布了5.3.9.
+
