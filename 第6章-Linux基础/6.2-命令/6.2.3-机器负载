@@ -1,3 +1,30 @@
 1.查看负载均衡
-w
-top整体负载，单个任务pid查看内存、cpu使用
+w、uptime查看负载
+top整体负载 总的，单个任务pid查看内存、cpu使用 按1展示cpu。查看各种状态线程数量（Tasks: 287 total,   1 running, 286 sleeping,   0 stopped,   0 zombie
+）
+
+root@ubuntu:~# vmstat 2 1
+procs -----------memory---------- ---swap-- -----io---- -system-- ----cpu----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa
+ 1  0      0 3498472 315836 3819540    0    0     0     1    2    0  0  0 100  0
+ //
+ swpd 虚拟内存已使用的大小 
+ free 空闲的物理内存的大小
+ b 表示阻塞的进程
+ si  每秒从磁盘读入虚拟内存的大小
+ so  每秒虚拟内存写入磁盘的大小
+
+ iostat -d -x -k 1 //查看磁盘io状态
+ 																							 io服务时长	 磁盘使用率
+Device:    rrqm/s wrqm/s   r/s   w/s  rsec/s  wsec/s    rkB/s    wkB/s avgrq-sz avgqu-sz   await  svctm  %util
+sda          1.56  28.31  7.84 31.50   43.65    3.16    21.82     1.58     1.19     0.03    0.80   2.61  10.29
+sda          1.98  24.75 419.80  6.93 13465.35  253.47  6732.67   126.73    32.15     2.00    4.70   2.00  85.25
+sda          3.06  41.84 444.90 54.08 14204.08 2048.98  7102.04  1024.49    32.57     2.10    4.21   1.85  92.24
+2.cat /proc/cpuinfo
+cat /proc/meminfo
+ulimit 
+3.ps
+名词解释：
+标识当前系统负荷 1.00 说明系统已经没有剩余的资源了。在实际情况中 ，有经验的系统管理员都会将这条线划在 0.70：
+理想的load average
+（以 100% 负载计算，1.00 表示单个处理器，而 2.00 则说明有两个双处理器，那么 4.00 就说明主机具有四个处理器。）
