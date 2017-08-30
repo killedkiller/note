@@ -1,0 +1,59 @@
+URL                      说明       是否允许通信
+http://www.a.com/a.js
+http://www.a.com/b.js     同一域名下   允许
+http://www.a.com/lab/a.js
+http://www.a.com/script/b.js 同一域名下不同文件夹 允许
+http://www.a.com:8000/a.js
+http://www.a.com/b.js     同一域名，不同端口  不允许
+http://www.a.com/a.js
+https://www.a.com/b.js 同一域名，不同协议 不允许
+http://www.a.com/a.js
+http://70.32.92.74/b.js 域名和域名对应ip 不允许
+http://www.a.com/a.js
+http://script.a.com/b.js 主域相同，子域不同 不允许
+http://www.a.com/a.js
+http://a.com/b.js 同一域名，不同二级域名（同上） 不允许（cookie这种情况下也不允许访问）
+http://www.cnblogs.com/a.js
+http://www.a.com/b.js 不同域名 不允许
+
+1.jsonp跨域
+原理：在js中，我们直接用XMLHttpRequest请求不同域上的数据时，是不可以的。但是，在页面上引入不同域上的js脚本文件却是可以的，jsonp正是利用这个特性来实现的。
+把请求的php的动态执行结果当作是一个js文件,所以http://example.com/ta.php返回的必须是一个能执行的js文件，所以这个页面的php代码可能是这样的:
+$callback  = $this->_requestParam["callback"];
+$ret       = array(
+            "errNo"  => $errno,
+            "errstr" => "success",
+            "data"   => array(),
+);
+$jsonp     = sprintf("%s(%s)", $callback, json_encode($ret));
+js:
+<script>
+function dosomething(jsondata) {
+	处理json
+}
+</script>
+<script src="http://example.com/ta.php?callbackdomething"></script>
+
+(请求的js会立即执行，调用domething方法处理jsondata)
+
+2.cors跨域
+跨域资源共享（CORS）
+CORS（Cross-Origin Resource Sharing）跨域资源共享，定义了必须在访问跨域资源时，浏览器与服务器应该如何沟通。CORS背后的基本思想就是使用自定义的HTTP头部让浏览器与服务器进行沟通，从而决定请求或响应是应该成功还是失败。
+<script type="text/javascript">
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", "http://segmentfault.com/u/trigkit4/",true);
+    xhr.send();
+</script>
+代码与之前的区别就在于相对路径换成了其他域的绝对路径，也就是你要跨域访问的接口地址。
+
+服务器端对于CORS的支持，主要就是通过设置Access-Control-Allow-Origin来进行的。如果浏览器检测到相应的设置，就可以允许Ajax进行跨域的访问。
+支持CORS请求的浏览器一旦发现ajax请求跨域，会对请求做一些特殊处理，对于已经实现CORS接口的服务端，接受请求，并做出回应。总而言之，客户端不需要对跨域请求做任何特殊处理。浏览器判断跨域为简单请求时候，会在Request Header中添加 Origin （协议 + 域名 + 端口）字段 ， 它表示我们的请求源，CORS服务端会将该字段作为跨源标志.CORS接收到此次请求后 ， 首先会判断Origin是否在允许源（由服务端决定）范围之内，如果验证通过，服务端会在Response Header 添加 Access-Control-Allow-Origin、Access-Control-Allow-Credentials等字段。
+method = PUT/DELETE这类非简单请求浏览器会首先发出类型为OPTIONS的“预检请求”，请求地址相同 ， CORS服务端对“预检请求”处理，并对Response Header添加验证字段，客户端接受到预检请求的返回值进行一次请求预判断，验证通过后，主请求发起。
+服务器端对于CORS的支持，主要就是通过设置Access-Control-Allow-Origin来进行的
+
+//jsonp vs cors
+ 1、 JSONP只能实现GET请求，而CORS支持所有类型的HTTP请求。
+ 2、 使用CORS，开发者可以使用普通的XMLHttpRequest发起请求和获得数据，比起JSONP有更好的错误处理。
+ 3、 JSONP主要被老的浏览器支持，它们往往不支持CORS，而绝大多数现代浏览器都已经支持了CORS）
+
+ 其他：通过修改document.domain来跨子域,使用window.name来进行跨域
