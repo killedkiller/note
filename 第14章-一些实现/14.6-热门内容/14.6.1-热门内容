@@ -1,0 +1,20 @@
+全局热门内容：
+1.
+设计db表索引(online_time,is_hot);
+一个内容被攒到>阈值,标记is_hot=1，upvote=点赞数
+同时加到缓存中redis zset (key member score)进行存储，如果是某一栏目的热门 key就为栏目。
+zadd key 内容 点赞数
+
+查询热门
+zreverangebyscores();
+若为空，查db，并且写入缓存，写入缓存的时候zadd要加分布式的锁（setnx）
+
+热门点赞时，判断它是热门
+ZINCRBY key increment member//返回分数
+若分数%50==0，flush todb
+
+非热门直接刷入db
+
+
+若不要求实时性更新点赞量，可以设置缓存失效为五分钟，五分钟自动更新。
+直接根据id查db，覆盖查询
