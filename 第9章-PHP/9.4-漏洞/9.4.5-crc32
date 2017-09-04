@@ -1,0 +1,16 @@
+首先在本地32位window机上生成好数据并插入对应的表中。但是再把程序和数据传到服务器上（64为linux），发现查不到数据。经过排查后发现，原来服务器上crc32的结果和本地不同。再查php手册才知，crc32的接口原来和机器有关。
+php手册的描述：
+复制代码 代码如下:
+
+Because PHP's integer type is signed many crc32 checksums will result in negative integers on 32bit platforms. On 64bit installations all crc32() results will be positive integers though.
+
+crc32返回的结果在32位机上会产生溢出，所以结果可能为负数。而在64位机上不会溢出，所以总是正值。
+CRC算法是按字长位数bit进行计算的。
+crc32函数会按照php中的两个常量参考计算 PHP_INT_SIZE，PHP_INT_MAX
+这两个常量的定义：
+整型数的字长和平台有关，尽管通常最大值是大约二十亿（32 位有符号）。PHP 不支持无符号整数。Integer值的字长可以用常量PHP_INT_SIZE来表示，自 PHP 4.4.0 和 PHP 5.0.5后，最大值可以用常量PHP_INT_MAX来表示。
+输出下32位中PHP_INT_SIZE：4，PHP_INT_MAX：2147483647
+输出下64位中PHP_INT_SIZE：8，PHP_INT_MAX：9223372036854775807
+
+
+如果给定的一个数超出了 integer 的范围，将会被解释为 float。同样如果执行的运算结果超出了 integer 范围，也会返回 float。
