@@ -248,7 +248,7 @@ LSET key index value
 返回值：索引元素存在，返回OK； 
               索引元素不存在，返回(error) ERR index out of range； 
 举例：LSET queue 2 3； 
-LTRIM key start end 
+LTRIM key start end //黑板报
 描述：删除列表中[start,end]以外所有的元素； 
 返回值：删除成功，返回OK； 
 举例：LTRIM queue 0 0； 
@@ -358,6 +358,11 @@ ZINCRBY key increment member
 描述：增加一个元素的分数，increment可以为负数； 
 返回值：返回增加后的分数； 
 示例：INCRBY zset1 1 ele4； 
+
+Redis ZRANK
+命令返回成员的有序集合保存在key，由低到高的分数顺序排名。
+示例：ZRANK zset1  ele4；
+
 ZCARD key 
 描述：获得集合中元素的数量； 
 返回值：返回集合中元素数量； 

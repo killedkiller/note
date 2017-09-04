@@ -1,0 +1,6 @@
+memcache优点：内存利用效率高，存储100k性能高于redis(多核)
+redis优点：事务、多种数据结构、持久化
+
+不同：集群管理方式
+memcached:只能采用客户端实现分布式存储（客户端根据key选择服务器）
+redis：服务器端实现分布式，master slave
