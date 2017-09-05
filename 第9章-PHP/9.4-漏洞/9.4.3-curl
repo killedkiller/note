@@ -1,3 +1,93 @@
 http://www.laruence.com/2014/01/21/2939.html
 
 在我们的CentOS服务器上, 当你设置了小于1000ms的超时以后, curl不会发起任何请求, 而直接返回超时错误(Timeout reached 28). 原来, 这里面有一个坑, CURL默认的, 在Linux系统上, 如果使用了系统标准的DNS解析, 则会使用SIGALARM来提供控制域名解析超时的功能, 但是SIGALARM不支持小于1s的超时,当你的超时时间小于1000ms的时候, name解析会直接返回CURLRESOLV_TIMEOUT, 最后会导致CURLE_OPERATION_TIMEDOUT, 然后就Error, Timeout reached了…
+
+//循环请求示例
+function rolling_curl($urls, $callback, $custom_options = null) {
+
+    // make sure the rolling window isn't greater than the # of urls
+    $rolling_window = 5;
+    $rolling_window = (sizeof($urls) &lt; $rolling_window) ? sizeof($urls) : $rolling_window;
+
+    $master = curl_multi_init();
+    $curl_arr = array();
+
+    // add additional curl options here
+    $std_options = array(CURLOPT_RETURNTRANSFER =&gt; true,
+    CURLOPT_FOLLOWLOCATION =&gt; true,
+    CURLOPT_MAXREDIRS =&gt; 5);
+    $options = ($custom_options) ? ($std_options + $custom_options) : $std_options;
+
+    // start the first batch of requests
+    for ($i = 0; $i &lt; $rolling_window; $i++) {
+        $ch = curl_init();
+        $options[CURLOPT_URL] = $urls[$i];
+        curl_setopt_array($ch,$options);
+        curl_multi_add_handle($master, $ch);
+    }
+    //core
+    do {
+        while(($execrun = curl_multi_exec($master, $running)) == CURLM_CALL_MULTI_PERFORM);//建立多路链接，循环，确保所有进程都被开始执行了
+        if($execrun != CURLM_OK)
+            break;
+        // a request was just completed -- find out which one
+        while($done = curl_multi_info_read($master)) { //查询批处理句柄是否单独的传输线程中有消息或信息返回
+            $info = curl_getinfo($done['handle']);
+            if ($info['http_code'] == 200)  {
+                $output = curl_multi_getcontent($done['handle']);
+
+                // request successful.  process output using the callback function.
+                $callback($output);
+
+                // start a new request (it's important to do this before removing the old one)
+                $ch = curl_init();
+                $options[CURLOPT_URL] = $urls[$i++];  // increment i
+                curl_setopt_array($ch,$options);
+                curl_multi_add_handle($master, $ch);
+
+                // remove the curl handle that just completed
+                curl_multi_remove_handle($master, $done['handle']);
+            } else {
+                // request failed.  add error handling.
+            }
+        }
+    } while ($running);
+    
+    curl_multi_close($master);
+    return true;
+}
+
+curl_multi_exec//非阻塞
+
+array curl_multi_info_read ( resource $mh [, int &$msgs_in_queue = NULL ] )
+查询批处理句柄是否单独的传输线程中有消息或信息返回。消息可能包含诸如从单独的传输线程返回的错误码或者只是传输线程有没有完成之类的报告。
+重复调用这个函数，它每次都会返回一个新的结果，直到这时没有更多信息返回时，FALSE 被当作一个信号返回。通过msgs_in_queue返回的整数指出将会包含当这次函数被调用后，还剩余的消息数。
+
+/*********官网示例***************/
+// 执行批处理句柄
+do {//此循环正常执行一次
+    $mrc = curl_multi_exec($mh, $active);
+} while ($mrc == CURLM_CALL_MULTI_PERFORM);
+//等待所有的执行完成
+while ($active && $mrc == CURLM_OK) {
+    if (curl_multi_select($mh) != -1) { //non busy,非忙等待
+        do {
+            $mrc = curl_multi_exec($mh, $active);
+        } while ($mrc == CURLM_CALL_MULTI_PERFORM);
+    }
+}
+
+curl_multi_info_read
+
+do {
+            $ret    = curl_multi_exec($mh, $active);
+        } while ($ret == CURLM_CALL_MULTI_PERFORM);
+        while ($active && $ret == CURLM_OK) {
+            // 由于阻塞模式，最小时间为1s，太长，因此这里使用非阻塞模式
+            if (curl_multi_select($mh, 0) == -1) {
+                usleep(5000);
+            }
+            do {
+                $ret = curl_multi_exec($mh, $active);
+            } while ($ret == CURLM_CALL_MULTI_PERFORM);
+        }
