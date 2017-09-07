@@ -1,0 +1,8 @@
+hash vs string
+例子：书城，记录每本书每个用户浏览状态
+hash:key->bookid field uid value status
+string:key->bookid:xxx:uid:xxx  value status
+
+string可能会导致key的数量暴涨,选择hash
+
+hash:有hgetall这类方法，有些情况适合一些数据操作/统计。
