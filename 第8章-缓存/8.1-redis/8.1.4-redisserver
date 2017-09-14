@@ -25,4 +25,7 @@ WATCH key1 [key2 ...]
 UWATCH
 描述：取消对key的监控；
  
+discard
+描述：回滚
+
 4.示例
