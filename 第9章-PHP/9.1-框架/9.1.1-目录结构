@@ -1,5 +1,5 @@
 controller-路由
-actions-接收参数 调用相应的ps层
+actions-接收参数 调用相应的ps层/校验用户信息，log切入
 ps层-{
 	打点
 	校验格式化参数
