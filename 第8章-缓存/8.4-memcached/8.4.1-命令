@@ -1,0 +1,14 @@
+ 所有的被发送到memcached的单个命令是完全原子的，命令序列不是原子的。
+
+ set key value
+ get key
+ add key value (if key exist,error)
+ replace key value (if key not exist,error)
+ append key value 后追加
+ prepend key value 前追加
+
+
+ cas
+ Memcached::cas()执行一个“检查并设置”的操作，因此，它仅在当前客户端最后一次取值后，该key 对应的值没有被其他客户端修改的情况下， 才能够将值写入。检查是通过cas_token参数进行的， 这个参数是Memcach指定给已经存在的元素的一个唯一的64位值， 怎样获取这个值请查看Memcached::get*() 系列方法的文档。注意：这个值作为double类型是因为PHP的整型空间限制。
+
+ 提供了gets和cas命令，它们可以解决上面的问题。如果您使用gets命令查询某个key的item，memcached会 给您返回该item当前值的唯一标识。如果您覆写了这个item并想把它写回到memcached中，您可以通过cas命令把那个唯一标识一起发送给 memcached。如果该item存放在memcached中的唯一标识与您提供的一致，您的写操作将会成功。如果另一个进程在这期间也修改了这个 item，那么该item存放在memcached中的唯一标识将会改变，您的写操作就会失败。
